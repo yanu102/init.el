@@ -315,6 +315,9 @@
   (add-to-list 'ac-sources' 'ac-source-my-perl-completion))
 (add-hook 'cperl-mode-hook 'my-cperl-mode-hook)
 
+;; plcmp-cmd-show-docでperlbrewを参照する
+(eval-after-load "woman"
+  '(add-to-list 'woman-manpath "/Users/syanuma/perl5/perlbrew/perls/perl-5.16.3/man"))
 
 ;;------------------------------------------------------------------------------
 ;; flymake-mode
