@@ -392,7 +392,7 @@
 ;; (add-to-list 'auto-mode-alist (cons  "\\.\\(tt\\)\\'" 'tt-mode))
 ;; (add-hook 'tt-mode-hook
 ;;           '(lambda()
-;;              'git-gutter+-mode))
+;;              (git-gutter+-mode)))
 
 ;;------------------------------------------------------------------------------
 ;; web-mode
@@ -401,15 +401,15 @@
 ;; (define-key web-mode-map "\C-cm" 'web-mode-tag-match)
 (add-hook 'web-mode-hook
           '(lambda()
-             'git-gutter+-mode))
+             (git-gutter+-mode)))
 
 ;;------------------------------------------------------------------------------
 ;; css-mode
 ;;------------------------------------------------------------------------------
-(add-to-list 'auto-mode-alist (cons "\\.css\\'" 'css-mode))
+(add-to-list 'auto-mode-alist (cons "\\.\\(css\\|less\\)\\'" 'css-mode))
 (add-hook 'css-mode-hook
           '(lambda()
-             'git-gutter+-mode))
+             (git-gutter+-mode)))
 
 ;;------------------------------------------------------------------------------
 ;; thing-opt.el
