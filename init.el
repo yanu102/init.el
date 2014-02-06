@@ -306,6 +306,7 @@
   (setq indent-tabs-mode nil)
   (setq tab-width nil)
   (cperl-set-style "PerlStyle")
+  (setq cperl-tab-always-indent t)      ; always indent current line
   (define-key cperl-mode-map "\M-p" 'cperl-perldoc)
   (define-key cperl-mode-map "\C-ct" 'perltidy-whole-buffer)
   (define-key cperl-mode-map "\C-c\C-c\C-c" 'perlcritic)
