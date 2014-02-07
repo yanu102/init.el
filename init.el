@@ -388,6 +388,7 @@
 (require 'auto-complete)
 (global-auto-complete-mode t)
 (setq ac-disable-faces nil)             ; コメント記述中も有効にする
+(setq ac-use-menu-map t)                ; 補完メニュー表示時専用のキー操作を有効にする
 
 ;;------------------------------------------------------------------------------
 ;; tt-mode
