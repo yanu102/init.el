@@ -20,6 +20,7 @@
                 color-theme
                 color-theme-solarized
                 ;; emacs-w3m
+                evil
                 git-commit-mode
                 git-emacs
                 git-blame
