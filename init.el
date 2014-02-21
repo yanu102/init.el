@@ -136,6 +136,9 @@
 (global-set-key "\C-m" 'newline-and-indent)
 (global-set-key "\C-m" 'indent-new-comment-line)
 
+;; grep-edit
+(require 'grep-edit)
+
 
 ;;------------------------------------------------------------------------------
 ;; theme
@@ -175,22 +178,24 @@
 (global-set-key "\C-a" 'beginning-of-visual-indented-line)
 (global-set-key "\C-e" 'end-of-visual-line)
 
-;; ;;------------------------------------------------------------------------------
-;; ;; pathの引き継ぎ
-;; ;;------------------------------------------------------------------------------
-;; ;; ~/.zshrcを利用する
-;; (load-file (expand-file-name "~/.emacs.d/shellenv.el"))
-;; (dolist (path (reverse (split-string (getenv "PATH") ":")))
-;;   (add-to-list 'exec-path path))
-;; ;; (setf exec-path nil) ; exec-pathの内容をリセットしたい場合
+;;------------------------------------------------------------------------------
+;; pathの引き継ぎ
+;;------------------------------------------------------------------------------
+;; ~/.zshrcを利用する
+(load-file (expand-file-name "~/.emacs.d/shellenv.el"))
+(dolist (path (reverse (split-string (getenv "PATH") ":")))
+  (add-to-list 'exec-path path))
+;; (setf exec-path nil) ; exec-pathの内容をリセットしたい場合
+
 ;; Emacsだけでやるパターン
 ;; (let ((path-str
 ;;        (replace-regexp-in-string
 ;;         "\n+$" "" (shell-command-to-string "echo $PATH"))))
 ;;   (setenv "PATH" path-str)
 ;;   (setq exec-path (nconc (split-string path-str ":") exec-path)))
-(if window-system
-    (exec-path-from-shell-initialize))
+
+;; (if window-system
+;;     (exec-path-from-shell-initialize))
 
 
 ;;------------------------------------------------------------------------------
@@ -200,6 +205,170 @@
 (server-start)
 (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
 (setq server-socket-dir (format "/private/tmp/emacs%d" (user-uid)))
+
+;;------------------------------------------------------------------------------
+;; dictionary
+;;------------------------------------------------------------------------------
+(defun dictionary ()
+  "dictionary.app"
+  (interactive)
+  (let ((editable (not buffer-read-only))
+        (pt (save-excursion (mouse-set-point last-nonmenu-event)))
+        beg end)
+    (if (and mark-active
+             (<= (region-beginning) pt) (<= pt (region-end)))
+        (setq beg (region-beginning)
+              end (region-end))
+      (save-excursion
+        (goto-char pt)
+        (setq end (progn (forward-word) (point)))
+        (setq beg (progn (backward-word) (point)))
+        ))
+    (browse-url
+     (concat "dict:///"
+             (url-hexify-string (buffer-substring-no-properties beg end))))))
+(define-key global-map (kbd "C-c d") 'dictionary)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   (quote
+    ("fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" default)))
+ '(send-mail-function (quote mailclient-send-it)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+;;------------------------------------------------------------------------------
+;; font
+;;------------------------------------------------------------------------------
+(if window-system
+    (progn
+      (create-fontset-from-ascii-font "Ricty-13:weight=normal:slant=normal" nil "ricty")
+      (set-fontset-font "fontset-ricty"
+                        'unicode
+                        (font-spec :family "Ricty" :size 13)
+                        nil
+                        'append)
+      (add-to-list 'default-frame-alist '(font . "fontset-ricty"))))
+
+
+;;------------------------------------------------------------------------------
+;; white space
+;;------------------------------------------------------------------------------
+(setq whitespace-style
+      '(tabs tab-mark spaces space-mark))
+(setq whitespace-space-regexp "\\(\x3000+\\)")
+(setq whitespace-display-mappings
+      '((space-mark ?\x3000 [?\□])
+        (tab-mark   ?\t   [?\xBB ?\t])
+        ))
+(require 'whitespace)
+(global-whitespace-mode 1)
+(set-face-foreground 'whitespace-space "LightSlateGray")
+(set-face-background 'whitespace-space "DarkSlateGray")
+(set-face-foreground 'whitespace-tab "LightSlateGray")
+(set-face-background 'whitespace-tab "DarkSlateGray")
+
+;;------------------------------------------------------------------------------
+;; mouse
+;;------------------------------------------------------------------------------
+(unless window-system
+  (xterm-mouse-mode 1)
+  (global-set-key "\C-xm" 'xterm-mouse-mode)
+  (global-set-key [mouse-4] '(lambda ()
+                               (interactive)
+                               (scroll-down 1)))
+  (global-set-key [mouse-5] '(lambda ()
+                               (interactive)
+                               (scroll-up 1))))
+
+
+
+
+;;------------------------------------------------------------------------------
+;; モジュール
+;;------------------------------------------------------------------------------
+
+;;------------------------------------------------------------------------------
+;; auto-complete.el
+;; M-x auto-install-from-emacswiki auto-complete.el
+;;------------------------------------------------------------------------------
+(add-to-list 'load-path "~/.emacs.d/el-get/auto-complete")
+(require 'auto-complete)
+(global-auto-complete-mode t)
+(setq ac-disable-faces nil)             ; コメント記述中も有効にする
+(setq ac-use-menu-map t)                ; 補完メニュー表示時専用のキー操作を有効にする
+
+;;------------------------------------------------------------------------------
+;; css-mode
+;;------------------------------------------------------------------------------
+(add-to-list 'auto-mode-alist (cons "\\.\\(css\\|less\\)\\'" 'css-mode))
+(add-hook 'css-mode-hook
+          '(lambda()
+             (git-gutter+-mode)))
+
+;;------------------------------------------------------------------------------
+;; evil
+;;------------------------------------------------------------------------------
+
+
+;;------------------------------------------------------------------------------
+;; flymake-mode
+;;------------------------------------------------------------------------------
+;; (setq flymake-log-level 3)
+
+;;------------------------------------------------------------------------------
+;; git-commit-mode
+;;------------------------------------------------------------------------------
+(add-to-list 'load-path "~/.emacs.d/el-get/git-commit-mode")
+
+;;------------------------------------------------------------------------------
+;; magit
+;;------------------------------------------------------------------------------
+;; (add-to-list 'load-path "~/.emacs.d/el-get/magit")
+;; (require 'magit)
+
+;; set key bind for 'magit-status' at "M-m"
+
+;; Removing Highlights on Diff mode
+; Don't really like the highlights on diff mode... Made it optional using:
+;; (defcustom magit-use-highlights nil
+;;   "Use highlights in diff buffer."
+;;   :group 'magit
+;;   :type 'boolean)
+;; (set-face-background 'magit-item-highlight "#202020")
+;; (eval-after-load 'magit
+;;   '(progn
+;;      (set-face-background 'magit-item-highlight "#202020")
+;;      ))
+
+
+;;------------------------------------------------------------------------------
+;; git-gutter+
+;;------------------------------------------------------------------------------
+
+
+;;------------------------------------------------------------------------------
+;; helm
+;;------------------------------------------------------------------------------
+(add-to-list 'load-path "~/.emacs.d/el-get/helm")
+(require 'helm-config)
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
+(global-set-key (kbd "C-x b") 'helm-buffers-list)
+(global-set-key (kbd "C-x f") 'helm-recentf)
+
+;;------------------------------------------------------------------------------
+;; helm-project
+;;------------------------------------------------------------------------------
+;; (add-to-list 'load-path "~/.emacs.d/el-get/helm-project")
+;; (require 'helm-project)
+;; (global-set-key (kbd "C-c C-f") 'helm-project)
 
 ;;------------------------------------------------------------------------------
 ;; javascript.el
@@ -217,6 +386,23 @@
 (add-hook 'js2-mode-hook
           '(lambda ()
              (git-gutter+-mode)))
+
+;;------------------------------------------------------------------------------
+;; markdown-mode
+;;------------------------------------------------------------------------------
+(add-to-list 'load-path "~/.emacs.d/el-get/markdown-mode")
+(autoload 'markdown-mode "markdown-mode"
+  "Major mode for editing Markdown files" t)
+(add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+
+;;------------------------------------------------------------------------------
+;; multiple cursors
+;;------------------------------------------------------------------------------
+(add-to-list 'load-path "~/.emacs.d/el-get/multiple-cursors")
+(require 'multiple-cursors)
+;; (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
 
 ;;------------------------------------------------------------------------------
 ;; perl tidy
@@ -322,50 +508,12 @@
   '(add-to-list 'woman-manpath "/Users/syanuma/perl5/perlbrew/perls/perl-5.16.3/man"))
 
 ;;------------------------------------------------------------------------------
-;; flymake-mode
+;; recentf-ext
 ;;------------------------------------------------------------------------------
-;; (setq flymake-log-level 3)
-
-;;------------------------------------------------------------------------------
-;; sql-mode
-;;------------------------------------------------------------------------------
-;; mysqlのキーワードにハイライトを当てる
-(add-hook 'sql-mode-hook 'sql-highlight-mysql-keywords)
-
-
-;;------------------------------------------------------------------------------
-;; helm
-;;------------------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/helm")
-(require 'helm-config)
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
-(global-set-key (kbd "C-x b") 'helm-buffers-list)
-(global-set-key (kbd "C-x f") 'helm-recentf)
-
-;;------------------------------------------------------------------------------
-;; helm-project
-;;------------------------------------------------------------------------------
-;; (add-to-list 'load-path "~/.emacs.d/el-get/helm-project")
-;; (require 'helm-project)
-;; (global-set-key (kbd "C-c C-f") 'helm-project)
-
-;;------------------------------------------------------------------------------
-;; yaml-mode
-;;------------------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/yaml-mode")
-(require 'yaml-mode)
-(add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
-
-
-;;------------------------------------------------------------------------------
-;; yasnippet.el
-;; 略語から定型文を入力する
-;;------------------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/yasnippet")
-(require 'yasnippet)
-(yas-global-mode 1)
-(setq yas/snippet-dirs "~/.emacs.d/el-get/yasnippet/snippets")
-(setq yas/prompt-functions '(yas/dropdown-prompt yas/ido-prompt yas/completing-prompt))
+(add-to-list 'load-path "~/.emacs.d/el-get/recentf-ext")
+(setq recentf-max-saved-items 500)
+(setq recentf-exculde '("/TAGS$" "/var/tmp/"))
+(require 'recentf-ext)
 
 ;;------------------------------------------------------------------------------
 ;; reqdo+.el
@@ -382,40 +530,21 @@
 (setq undo-strong-limit 900000)
 
 ;;------------------------------------------------------------------------------
-;; auto-complete.el
-;; M-x auto-install-from-emacswiki auto-complete.el
+;; sql-mode
 ;;------------------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/auto-complete")
-(require 'auto-complete)
-(global-auto-complete-mode t)
-(setq ac-disable-faces nil)             ; コメント記述中も有効にする
-(setq ac-use-menu-map t)                ; 補完メニュー表示時専用のキー操作を有効にする
+;; mysqlのキーワードにハイライトを当てる
+(add-hook 'sql-mode-hook 'sql-highlight-mysql-keywords)
+
 
 ;;------------------------------------------------------------------------------
-;; tt-mode
+;; tabbar
 ;;------------------------------------------------------------------------------
-;; (require 'tt-mode)
-;; (add-to-list 'auto-mode-alist (cons  "\\.\\(tt\\)\\'" 'tt-mode))
-;; (add-hook 'tt-mode-hook
-;;           '(lambda()
-;;              (git-gutter+-mode)))
-
-;;------------------------------------------------------------------------------
-;; web-mode
-;;------------------------------------------------------------------------------
-(add-to-list 'auto-mode-alist (cons "\\.\\(html\\|htm\\|tt\\)\\'" 'web-mode))
-;; (define-key web-mode-map "\C-cm" 'web-mode-tag-match)
-(add-hook 'web-mode-hook
-          '(lambda()
-             (git-gutter+-mode)))
-
-;;------------------------------------------------------------------------------
-;; css-mode
-;;------------------------------------------------------------------------------
-(add-to-list 'auto-mode-alist (cons "\\.\\(css\\|less\\)\\'" 'css-mode))
-(add-hook 'css-mode-hook
-          '(lambda()
-             (git-gutter+-mode)))
+(tabbar-mode t)
+(if tabbar-mode
+    (progn
+      (define-key global-map (kbd "C-c n") 'tabbar-forward-tab)
+      (define-key global-map (kbd "C-c p") 'tabbar-backward-tab)
+      ))
 
 ;;------------------------------------------------------------------------------
 ;; thing-opt.el
@@ -447,145 +576,42 @@
 ;; (key-chord-define-global "vl" 'mark-up-list)
 
 ;;------------------------------------------------------------------------------
-;; recentf-ext
+;; tt-mode
 ;;------------------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/recentf-ext")
-(setq recentf-max-saved-items 500)
-(setq recentf-exculde '("/TAGS$" "/var/tmp/"))
-(require 'recentf-ext)
+;; (require 'tt-mode)
+;; (add-to-list 'auto-mode-alist (cons  "\\.\\(tt\\)\\'" 'tt-mode))
+;; (add-hook 'tt-mode-hook
+;;           '(lambda()
+;;              (git-gutter+-mode)))
 
 ;;------------------------------------------------------------------------------
-;; multiple cursors
+;; yaml-mode
 ;;------------------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/multiple-cursors")
-(require 'multiple-cursors)
-;; (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-
-;;------------------------------------------------------------------------------
-;; dictionary
-;;------------------------------------------------------------------------------
-(defun dictionary ()
-  "dictionary.app"
-  (interactive)
-  (let ((editable (not buffer-read-only))
-        (pt (save-excursion (mouse-set-point last-nonmenu-event)))
-        beg end)
-    (if (and mark-active
-             (<= (region-beginning) pt) (<= pt (region-end)))
-        (setq beg (region-beginning)
-              end (region-end))
-      (save-excursion
-        (goto-char pt)
-        (setq end (progn (forward-word) (point)))
-        (setq beg (progn (backward-word) (point)))
-        ))
-    (browse-url
-     (concat "dict:///"
-             (url-hexify-string (buffer-substring-no-properties beg end))))))
-(define-key global-map (kbd "C-c d") 'dictionary)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   (quote
-    ("fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" default)))
- '(send-mail-function (quote mailclient-send-it)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-
-;;------------------------------------------------------------------------------
-;; git-commit-mode
-;;------------------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/git-commit-mode")
-
-;;------------------------------------------------------------------------------
-;; magit
-;;------------------------------------------------------------------------------
-;; (add-to-list 'load-path "~/.emacs.d/el-get/magit")
-;; (require 'magit)
-
-;; set key bind for 'magit-status' at "M-m"
-
-;; Removing Highlights on Diff mode
-; Don't really like the highlights on diff mode... Made it optional using:
-;; (defcustom magit-use-highlights nil
-;;   "Use highlights in diff buffer."
-;;   :group 'magit
-;;   :type 'boolean)
-;; (set-face-background 'magit-item-highlight "#202020")
-;; (eval-after-load 'magit
-;;   '(progn
-;;      (set-face-background 'magit-item-highlight "#202020")
-;;      ))
+(add-to-list 'load-path "~/.emacs.d/el-get/yaml-mode")
+(require 'yaml-mode)
+(add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
 
 
 ;;------------------------------------------------------------------------------
-;; git-gutter+
+;; yasnippet.el
+;; 略語から定型文を入力する
 ;;------------------------------------------------------------------------------
-
-
-;;------------------------------------------------------------------------------
-;; tabbar
-;;------------------------------------------------------------------------------
-(tabbar-mode t)
-(if tabbar-mode
-    (progn
-      (define-key global-map (kbd "C-c n") 'tabbar-forward-tab)
-      (define-key global-map (kbd "C-c p") 'tabbar-backward-tab)
-      ))
-
+(add-to-list 'load-path "~/.emacs.d/el-get/yasnippet")
+(require 'yasnippet)
+(yas-global-mode 1)
+(setq yas/snippet-dirs "~/.emacs.d/el-get/yasnippet/snippets")
+(setq yas/prompt-functions '(yas/dropdown-prompt yas/ido-prompt yas/completing-prompt))
 
 ;;------------------------------------------------------------------------------
-;; markdown-mode
+;; web-mode
 ;;------------------------------------------------------------------------------
-(add-to-list 'load-path "~/.emacs.d/el-get/markdown-mode")
-(autoload 'markdown-mode "markdown-mode"
-  "Major mode for editing Markdown files" t)
-(add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
-(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
-(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
-
-;;------------------------------------------------------------------------------
-;; grep-edit
-;;------------------------------------------------------------------------------
-(require 'grep-edit)
-
-;;------------------------------------------------------------------------------
-;; font
-;;------------------------------------------------------------------------------
-(if window-system
-    (progn
-      (create-fontset-from-ascii-font "Ricty-13:weight=normal:slant=normal" nil "ricty")
-      (set-fontset-font "fontset-ricty"
-                        'unicode
-                        (font-spec :family "Ricty" :size 13)
-                        nil
-                        'append)
-      (add-to-list 'default-frame-alist '(font . "fontset-ricty"))))
+(add-to-list 'auto-mode-alist (cons "\\.\\(html\\|htm\\|tt\\)\\'" 'web-mode))
+;; (define-key web-mode-map "\C-cm" 'web-mode-tag-match)
+(add-hook 'web-mode-hook
+          '(lambda()
+             (git-gutter+-mode)))
 
 
-;;------------------------------------------------------------------------------
-;; white space
-;;------------------------------------------------------------------------------
-(setq whitespace-style
-      '(tabs tab-mark spaces space-mark))
-(setq whitespace-space-regexp "\\(\x3000+\\)")
-(setq whitespace-display-mappings
-      '((space-mark ?\x3000 [?\□])
-        (tab-mark   ?\t   [?\xBB ?\t])
-        ))
-(require 'whitespace)
-(global-whitespace-mode 1)
-(set-face-foreground 'whitespace-space "LightSlateGray")
-(set-face-background 'whitespace-space "DarkSlateGray")
-(set-face-foreground 'whitespace-tab "LightSlateGray")
-(set-face-background 'whitespace-tab "DarkSlateGray")
 
 
 ;;------------------------------------------------------------------------------
@@ -602,6 +628,7 @@
 (define-key global-map (kbd "M-x") 'helm-M-x)
 (define-key global-map (kbd "M-m") 'magit-status)
 (define-key global-map (kbd "C-c b") 'magit-blame-mode)
+(define-key global-map (kbd "C-i") 'indent-for-tab-command) ;yasnippetをよぶと上書きされるため
 
 ;; 括弧の補完
 ;; (global-set-key (kbd "(") 'skeleton-pair-insert-maybe)
@@ -609,18 +636,3 @@
 ;; (global-set-key (kbd "[") 'skeleton-pair-insert-maybe)
 ;; (global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
 ;; (setq skeleton-pair 1)
-
-
-;;------------------------------------------------------------------------------
-;; mouse
-;;------------------------------------------------------------------------------
-(unless window-system
-  (xterm-mouse-mode 1)
-  (global-set-key "\C-xm" 'xterm-mouse-mode)
-  (global-set-key [mouse-4] '(lambda ()
-                               (interactive)
-                               (scroll-down 1)))
-  (global-set-key [mouse-5] '(lambda ()
-                               (interactive)
-                               (scroll-up 1))))
-
