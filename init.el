@@ -398,6 +398,23 @@
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 
 ;;------------------------------------------------------------------------------
+;; migemo
+;;------------------------------------------------------------------------------
+;; git clone https://github.com/emacs-jp/migemo.git ~/.emacs.d/recipes/migemo
+(add-to-list 'load-path "~/.emacs.d/recipes/migemo")
+(require 'migemo)
+(setq migemo-command "cmigemo")
+(setq migemo-options '("-q" "--emacs"))
+
+(setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict")
+
+(setq migemo-user-dictionary nil)
+(setq migemo-regex-dictionary nil)
+(setq migemo-coding-system 'utf-8-unix)
+(load-library "migemo")
+(migemo-init)
+
+;;------------------------------------------------------------------------------
 ;; multiple cursors
 ;;------------------------------------------------------------------------------
 (add-to-list 'load-path "~/.emacs.d/el-get/multiple-cursors")
