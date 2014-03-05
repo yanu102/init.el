@@ -649,6 +649,7 @@
 (define-key global-map (kbd "M-m") 'magit-status)
 (define-key global-map (kbd "C-c b") 'magit-blame-mode)
 (define-key global-map (kbd "C-i") 'indent-for-tab-command) ;yasnippetをよぶと上書きされるため
+(define-key global-map (kbd "M-q") 'keyboard-quit)
 
 ;; 括弧の補完
 ;; (global-set-key (kbd "(") 'skeleton-pair-insert-maybe)
