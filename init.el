@@ -679,9 +679,3 @@
 (define-key global-map (kbd "C-i") 'indent-for-tab-command) ;yasnippetをよぶと上書きされるため
 (define-key global-map (kbd "M-q") 'keyboard-quit)
 
-;; 括弧の補完
-;; (global-set-key (kbd "(") 'skeleton-pair-insert-maybe)
-;; (global-set-key (kbd "{") 'skeleton-pair-insert-maybe)
-;; (global-set-key (kbd "[") 'skeleton-pair-insert-maybe)
-;; (global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
-;; (setq skeleton-pair 1)
