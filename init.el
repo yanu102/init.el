@@ -536,7 +536,10 @@
   ;; (flymake-mode)
   (git-gutter+-mode)
   (perl-completion-mode t)
-  (add-to-list 'ac-sources' 'ac-source-my-perl-completion))
+  (add-to-list 'ac-sources' 'ac-source-my-perl-completion)
+  (font-lock-add-keywords nil
+                          '(("\\<\\(FIXME\\|TODO\\|BUG\\)" 1 font-lock-warning-face t)))
+  )
 (add-hook 'cperl-mode-hook 'my-cperl-mode-hook)
 
 ;; plcmp-cmd-show-docでperlbrewを参照する
