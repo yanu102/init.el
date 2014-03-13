@@ -194,16 +194,6 @@
   (add-to-list 'exec-path path))
 ;; (setf exec-path nil) ; exec-pathの内容をリセットしたい場合
 
-;; Emacsだけでやるパターン
-;; (let ((path-str
-;;        (replace-regexp-in-string
-;;         "\n+$" "" (shell-command-to-string "echo $PATH"))))
-;;   (setenv "PATH" path-str)
-;;   (setq exec-path (nconc (split-string path-str ":") exec-path)))
-
-;; (if window-system
-;;     (exec-path-from-shell-initialize))
-
 
 ;;------------------------------------------------------------------------------
 ;; emacsclient
@@ -304,7 +294,6 @@
 
 ;;------------------------------------------------------------------------------
 ;; auto-complete.el
-;; M-x auto-install-from-emacswiki auto-complete.el
 ;;------------------------------------------------------------------------------
 (add-to-list 'load-path "~/.emacs.d/el-get/auto-complete")
 (require 'auto-complete)
@@ -560,8 +549,6 @@
 
 ;;------------------------------------------------------------------------------
 ;; reqdo+.el
-;; 「やり直し」を改善する
-;; M-x install-elisp-from-emacswiki redo+.el
 ;;------------------------------------------------------------------------------
 (add-to-list 'load-path "~/.emacs.d/el-get/redo+")
 (require 'redo+)
@@ -646,7 +633,6 @@
 
 ;;------------------------------------------------------------------------------
 ;; yasnippet.el
-;; 略語から定型文を入力する
 ;;------------------------------------------------------------------------------
 (add-to-list 'load-path "~/.emacs.d/el-get/yasnippet")
 (require 'yasnippet)
