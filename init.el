@@ -575,12 +575,12 @@
 ;;------------------------------------------------------------------------------
 ;; tabbar
 ;;------------------------------------------------------------------------------
-(tabbar-mode t)
-(if tabbar-mode
-    (progn
-      (define-key global-map (kbd "C-c n") 'tabbar-forward-tab)
-      (define-key global-map (kbd "C-c p") 'tabbar-backward-tab)
-      ))
+;; (tabbar-mode t)
+;; (if tabbar-mode
+;;     (progn
+;;       (define-key global-map (kbd "C-c n") 'tabbar-forward-tab)
+;;       (define-key global-map (kbd "C-c p") 'tabbar-backward-tab)
+;;       ))
 
 ;;------------------------------------------------------------------------------
 ;; thing-opt.el
